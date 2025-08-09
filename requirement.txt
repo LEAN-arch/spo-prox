@@ -1,0 +1,24 @@
+# --- Core Streamlit Framework ---
+streamlit~=1.30.0
+streamlit-option-menu~=0.3.6
+graphviz
+# --- Data Manipulation & Numerical Computing ---
+pandas~=2.0.3
+numpy~=1.24.4
+
+# --- Statistical Modeling & Analysis ---
+scipy~=1.11.0
+statsmodels~=0.14.0
+
+# --- Machine Learning & AI ---
+scikit-learn~=1.3.0
+prophet~=1.1.5
+shap~=0.44.0
+
+# --- Visualization ---
+plotly~=5.18.0
+# kaleido is required by plotly for static image export (e.g., for the PowerPoint report)
+kaleido~=0.2.1
+
+# --- Reporting ---
+python-pptx~=0.6.21
