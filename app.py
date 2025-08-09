@@ -363,7 +363,7 @@ def create_toolkit_conceptual_map():
         paper_bgcolor='#f0f2f6'
     )
     return fig
-
+    
 @st.cache_data
 def plot_ci_concept(n=30):
     """
@@ -3793,7 +3793,6 @@ def render_advanced_ai_concepts():
 # ==============================================================================
 # MAIN APP LOGIC AND LAYOUT
 # ==============================================================================
-
 if 'current_view' not in st.session_state:
     st.session_state.current_view = 'Introduction'
 
@@ -3819,7 +3818,6 @@ with st.sidebar:
                 st.session_state.current_view = tool
                 st.rerun()
 
-# --- Main Content Area Dispatcher ---
 view = st.session_state.current_view
 
 if view == 'Introduction':
