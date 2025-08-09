@@ -22,7 +22,7 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.cluster import KMeans
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA # Needed for MSPC
+from sklearn.decomposition import PCA
 import shap
 
 # ==============================================================================
@@ -66,7 +66,6 @@ st.markdown("""
 # ALL HELPER & PLOTTING FUNCTIONS
 # ==============================================================================
 
-# --- RESTORED PLOTTING FUNCTION 1 ---
 @st.cache_data
 def plot_v_model():
     fig = go.Figure()
@@ -94,7 +93,6 @@ def plot_v_model():
     fig.update_layout(title_text='<b>The V&V Model for Technology Transfer (Hover for Details)</b>', title_x=0.5, showlegend=False, xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.6, 6.6]), yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[1.4, 5.8]), height=600, margin=dict(l=20, r=20, t=60, b=20), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
     return fig
 
-# --- RESTORED PLOTTING FUNCTION 2 ---
 @st.cache_data
 def plot_act_grouped_timeline():
     all_tools_data = [
@@ -140,14 +138,14 @@ def plot_act_grouped_timeline():
     y_offsets = [3.0, -3.0, 3.5, -3.5, 2.5, -2.5, 4.0, -4.0, 2.0, -2.0, 4.5, -4.5, 1.5, -1.5]
     for i, tool in enumerate(all_tools_data):
         tool['y'] = y_offsets[i % len(y_offsets)]
-
+    
     fig = go.Figure()
     acts = {
         1: {'name': 'Act I: Foundation', 'color': 'rgba(0, 128, 128, 0.9)', 'boundary': (0, 48)},
         2: {'name': 'Act II: Transfer & Stability', 'color': 'rgba(0, 104, 201, 0.9)', 'boundary': (48, 78)},
         3: {'name': 'Act III: Lifecycle & Predictive', 'color': 'rgba(100, 0, 100, 0.9)', 'boundary': (78, 120)}
     }
-
+    
     for act_info in acts.values():
         x0, x1 = act_info['boundary']
         fig.add_shape(type="rect", x0=x0, y0=-5.0, x1=x1, y1=5.0, line=dict(width=0), fillcolor='rgba(230, 230, 230, 0.7)', layer='below')
@@ -204,7 +202,7 @@ def plot_chronological_timeline():
     y_offsets = [3.0, -3.0, 3.5, -3.5, 2.5, -2.5, 4.0, -4.0, 2.0, -2.0, 4.5, -4.5, 1.5, -1.5]
     for i, tool in enumerate(all_tools_data):
         tool['y'] = y_offsets[i % len(y_offsets)]
-
+    
     fig = go.Figure()
     eras = {
         'The Foundations (1920-1949)': {'color': 'rgba(0, 128, 128, 0.7)', 'boundary': (1920, 1949)},
@@ -212,7 +210,7 @@ def plot_chronological_timeline():
         'The Quality Revolution (1980-1999)': {'color': 'rgba(100, 0, 100, 0.7)', 'boundary': (1980, 1999)},
         'The AI & Data Era (2000-Present)': {'color': 'rgba(214, 39, 40, 0.7)', 'boundary': (2000, 2025)}
     }
-
+    
     for era_name, era_info in eras.items():
         x0, x1 = era_info['boundary']
         fig.add_shape(type="rect", x0=x0, y0=-5.5, x1=x1, y1=5.5, line=dict(width=0), fillcolor=era_info['color'], opacity=0.15, layer='below')
@@ -223,7 +221,7 @@ def plot_chronological_timeline():
     for tool in all_tools_data:
         x_coord = tool['year']
         y_coord = tool['y']
-
+        
         tool_color = 'grey'
         for era_info in eras.values():
             if era_info['boundary'][0] <= x_coord <= era_info['boundary'][1]:
@@ -254,8 +252,6 @@ def plot_chronological_timeline():
 
 @st.cache_data
 def create_toolkit_conceptual_map():
-    """Creates a visually superior, non-overlapping conceptual map with the correct aesthetics."""
-
     structure = {
         'Foundational Statistics': ['Statistical Inference', 'Regression Models'],
         'Process & Quality Control': ['Measurement Systems Analysis', 'Statistical Process Control', 'Validation & Lifecycle'],
@@ -282,12 +278,11 @@ def create_toolkit_conceptual_map():
     origin_colors = {
         'Statistics': '#1f77b4', 'Biostatistics': '#2ca02c',
         'Industrial Quality Control': '#ff7f0e', 'Data Science / ML': '#d62728',
-        'Structure': '#6A5ACD' # This is the purple color
+        'Structure': '#6A5ACD'
     }
 
     nodes = {}
-
-    # Algorithmic Layout
+    
     vertical_spacing = 2.2
     all_tools_flat = [tool for sublist in sub_structure.values() for tool in sublist]
     y_coords = np.linspace(len(all_tools_flat) * vertical_spacing, -len(all_tools_flat) * vertical_spacing, len(all_tools_flat))
@@ -307,22 +302,19 @@ def create_toolkit_conceptual_map():
 
     fig = go.Figure()
 
-    # Draw Edges using Shapes
     all_edges = [('CENTER', l1) for l1 in structure.keys()] + \
                 [(l1, l2) for l1, l2s in structure.items() for l2 in l2s] + \
                 [(l2, l3) for l2, l3s in sub_structure.items() for l3 in l3s]
-
+    
     for start_key, end_key in all_edges:
         fig.add_shape(type="line",
             x0=nodes[start_key]['x'], y0=nodes[start_key]['y'],
             x1=nodes[end_key]['x'], y1=nodes[end_key]['y'],
             line=dict(color="lightgrey", width=1.5)
         )
-
-    # Aggregate data by origin for clean legend plotting
+    
     data_by_origin = {name: {'x': [], 'y': [], 'short': [], 'full': [], 'size': [], 'font_size': []} for name in origin_colors.keys()}
-
-    # Define sizes for different node levels
+    
     size_map = {'CENTER': 150, 'Level1': 130, 'Level2': 110, 'Tool': 90}
     font_map = {'CENTER': 16, 'Level1': 14, 'Level2': 12, 'Tool': 11}
 
@@ -331,18 +323,16 @@ def create_toolkit_conceptual_map():
         elif key in structure: level = 'Level1'
         elif key in sub_structure: level = 'Level2'
         else: level = 'Tool'
-
+        
         data_by_origin[data['origin']]['x'].append(data['x'])
         data_by_origin[data['origin']]['y'].append(data['y'])
         data_by_origin[data['origin']]['short'].append(data['short'])
         data_by_origin[data['origin']]['full'].append(data['name'])
         data_by_origin[data['origin']]['size'].append(size_map[level])
         data_by_origin[data['origin']]['font_size'].append(font_map[level])
-
-    # Draw one trace per origin for a clean legend
+        
     for origin_name, data in data_by_origin.items():
         if not data['x']: continue
-        is_structure = origin_name == 'Structure'
         fig.add_trace(go.Scatter(
             x=data['x'], y=data['y'], text=data['short'],
             mode='markers+text', textposition="middle center",
@@ -3809,11 +3799,13 @@ if 'current_view' not in st.session_state:
 
 with st.sidebar:
     st.title("🧰 Toolkit Navigation")
+    
     if st.sidebar.button("🚀 Project Framework", use_container_width=True):
         st.session_state.current_view = 'Introduction'
         st.rerun()
 
     st.divider()
+
     all_tools = {
         "ACT I: FOUNDATION & CHARACTERIZATION": ["Confidence Interval Concept", "Core Validation Parameters", "Gage R&R / VCA", "LOD & LOQ", "Linearity & Range", "Non-Linear Regression (4PL/5PL)", "ROC Curve Analysis", "Equivalence Testing (TOST)", "Assay Robustness (DOE)", "Causal Inference"],
         "ACT II: TRANSFER & STABILITY": ["Process Stability (SPC)", "Process Capability (Cpk)", "Tolerance Intervals", "Method Comparison", "Pass/Fail Analysis", "Bayesian Inference"],
@@ -3827,6 +3819,7 @@ with st.sidebar:
                 st.session_state.current_view = tool
                 st.rerun()
 
+# --- Main Content Area Dispatcher ---
 view = st.session_state.current_view
 
 if view == 'Introduction':
@@ -3853,7 +3846,7 @@ else:
         "Bayesian Inference": render_bayesian,
         "Run Validation (Westgard)": render_multi_rule,
         "Multivariate SPC": render_multivariate_spc,
-        "Small Shift Detection": render_ewma_cusum, # FIX: Added the new function here
+        "Small Shift Detection": render_ewma_cusum,
         "Time Series Analysis": render_time_series_analysis,
         "Stability Analysis (Shelf-Life)": render_stability_analysis,
         "Reliability / Survival Analysis": render_survival_analysis,
