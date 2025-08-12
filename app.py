@@ -5682,8 +5682,8 @@ def plot_lstm_autoencoder_monitoring(drift_rate=0.02, spike_magnitude=2.0):
 
 def render_introduction_content():
     """Renders the complete, all-in-one introduction and framework dashboard."""
-    st.title("🛠️ Biotech V&V Analytics Toolkit")
-    st.markdown("### An Interactive Guide to Assay Validation, Tech Transfer, and Lifecycle Management")
+    st.title("🛠️ V&V Analytics Toolkit")
+    st.markdown("### An Interactive Guide to Biotech/Medical Device Validation, Tech Transfer, and Lifecycle Management")
 # --- NEW, CLEAN & STACKED HEADER SECTION ---
     # We use a single markdown block to control the layout precisely.
     st.markdown(
