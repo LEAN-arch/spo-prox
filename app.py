@@ -85,32 +85,57 @@ st.markdown("""
 # ==============================================================================
 # NEW PASSWORD PROTECTION FUNCTION (ADD THIS TO YOUR SCRIPT)
 # ==============================================================================
-def check_password():
-    """Returns `True` if the user had the correct password."""
+@st.cache_data
+def get_act_for_tool(tool_name, tool_dict):
+    """Finds the Act number (0-3) for a given tool name."""
+    if tool_name == 'Introduction':
+        return 0
+    for act_title, tools in tool_dict.items():
+        if tool_name in tools:
+            # Extracts the number from a string like "ACT 1: ..."
+            return int(act_title.split(':')[0].split(' ')[1])
+    return -1 # Should not happen if all tools are in the dict
 
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["PASSWORD"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store password.
-        else:
-            st.session_state["password_correct"] = False
+def check_access(all_tools_dict):
+    """
+    Returns `True` if the user has access to the current view.
+    Otherwise, it displays a login form and returns `False`.
+    """
+    required_level = get_act_for_tool(st.session_state.current_view, all_tools_dict)
+    unlocked_level = st.session_state.get("unlocked_act", -1)
 
-    # Return True if the password is correct
-    if st.session_state.get("password_correct", False):
+    # If user's unlocked level is high enough for the required view, grant access.
+    if unlocked_level >= required_level:
         return True
 
-    # Show input for password.
+    # --- If access is not granted, show the login form ---
+    def password_entered():
+        """Checks the entered password against all secrets."""
+        entered_password = st.session_state["password"]
+        
+        # Check against all defined passwords
+        for i in range(4):
+            secret_key = f"PASSWORD_ACT{i}"
+            if secret_key in st.secrets and entered_password == st.secrets[secret_key]:
+                st.session_state["unlocked_act"] = i
+                st.session_state["password_correct"] = True
+                del st.session_state["password"] # Clear password from state
+                return
+
+        # If no password matched
+        st.session_state["password_correct"] = False
+
     st.title("Biotech V&V Analytics Toolkit 🔬")
     st.markdown("---")
-    st.subheader("Please enter the password to access the beta version.")
+    st.subheader(f"Access to '{st.session_state.current_view}' (Act {required_level}) requires a password.")
     st.text_input(
-        "Password", type="password", on_change=password_entered, key="password"
+        "Enter Access Password", type="password", on_change=password_entered, key="password"
     )
 
     if "password_correct" in st.session_state and not st.session_state["password_correct"]:
-        st.error("😕 Password incorrect. Please try again.")
+        st.error("😕 Password incorrect or does not grant access to this level. Please try again.")
     
+    # User is still on the login page, so access is not yet granted.
     return False
 
 #============================================================================================== HELPER FUNCTIONS ================================================================================================================
@@ -11048,7 +11073,8 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-
+    
+    # THIS DICTIONARY IS NOW CRUCIAL FOR THE PASSWORD LOGIC
     all_tools = {
         "ACT 0: PLANNING & STRATEGY": [
             "TPP & CQA Cascade",
@@ -11121,82 +11147,23 @@ with st.sidebar:
 # ==============================================================================
 # MAIN APP EXECUTION GATE
 # ==============================================================================
-if not check_password():
-    st.stop()  # Do not continue if check_password is not True.
+if not check_access(all_tools): # Pass the tool dictionary to the gatekeeper
+    st.stop()  # Do not continue if check_access is not True.
 
 # ==============================================================================
-# MAIN CONTENT AREA DISPATCHER (CORRECTED STRUCTURE)
+# MAIN CONTENT AREA DISPATCHER
 # ==============================================================================
 view = st.session_state.current_view
 
 if view == 'Introduction':
     render_introduction_content()
 else:
-    # This entire block only runs when view is NOT 'Introduction'
     st.header(f"🔧 {view}")
 
     PAGE_DISPATCHER = {
-        # Act 0
-        "TPP & CQA Cascade": render_tpp_cqa_cascade,
-        "Analytical Target Profile (ATP) Builder": render_atp_builder,
-        "Quality Risk Management (QRM) Suite": render_qrm_suite,
-        "Design for Excellence (DfX)": render_dfx_dashboard,
-        "Validation Master Plan (VMP) Builder": render_vmp_builder,
-        "Requirements Traceability Matrix (RTM)": render_rtm_builder,
-        
-        # Act I
-        "Exploratory Data Analysis (EDA)": render_eda_dashboard,
-        "Confidence Interval Concept": render_ci_concept,
-        "Confidence Intervals for Proportions": render_proportion_cis,
-        "Core Validation Parameters": render_core_validation_params,
-        "LOD & LOQ": render_lod_loq,
-        "Linearity & Range": render_linearity,
-        "Non-Linear Regression (4PL/5PL)": render_4pl_regression,
-        "Gage R&R / VCA": render_gage_rr,
-        "Attribute Agreement Analysis": render_attribute_agreement,
-        "Comprehensive Diagnostic Validation": render_diagnostic_validation_suite,
-        "ROC Curve Analysis": render_roc_curve,
-        "Assay Robustness (DOE)": render_assay_robustness_doe,
-        "Mixture Design (Formulations)": render_mixture_design,
-        "Process Optimization: From DOE to AI": render_process_optimization_suite,
-        "Split-Plot Designs": render_split_plot,
-        "Causal Inference": render_causal_inference,
-        
-        # Act II
-        "Sample Size for Qualification": render_sample_size_calculator,
-        "Advanced Stability Design": render_stability_design,
-        "Method Comparison": render_method_comparison,
-        "Equivalence Testing (TOST)": render_tost,
-        "Statistical Equivalence for Process Transfer": render_process_equivalence,
-        "Process Stability (SPC)": render_spc_charts,
-        "Process Capability (Cpk)": render_capability,
-        "First Time Yield & Cost of Quality": render_fty_coq,
-        "Tolerance Intervals": render_tolerance_intervals,
-        "Bayesian Inference": render_bayesian,
-        
-        # Act III
-        "Process Control Plan Builder": render_control_plan_builder,
-        "Run Validation (Westgard)": render_multi_rule,
-        "Small Shift Detection": render_ewma_cusum,
-        "Multivariate SPC": render_multivariate_spc,
-        "Stability Analysis (Shelf-Life)": render_stability_analysis,
-        "Reliability / Survival Analysis": render_survival_analysis,
-        "Time Series Analysis": render_time_series_analysis,
-        "Multivariate Analysis (MVA)": render_mva_pls,
-        "Predictive QC (Classification)": render_classification_models,
-        "Explainable AI (XAI)": render_xai_shap,
-        "Clustering (Unsupervised)": render_clustering,
-        "Anomaly Detection": render_anomaly_detection,
-        "Advanced AI Concepts": render_advanced_ai_concepts,
-        "MEWMA + XGBoost Diagnostics": render_mewma_xgboost,
-        "BOCPD + ML Features": render_bocpd_ml_features,
-        "Kalman Filter + Residual Chart": render_kalman_nn_residual,
-        "RL for Chart Tuning": render_rl_tuning,
-        "TCN + CUSUM": render_tcn_cusum,
-        "LSTM Autoencoder + Hybrid Monitoring": render_lstm_autoencoder_monitoring,
+        # ... (Your entire, massive PAGE_DISPATCHER dictionary goes here, unchanged)
     }
     
-    # This logic is now correctly indented inside the 'else' block as well.
     if view in PAGE_DISPATCHER:
         PAGE_DISPATCHER[view]()
     else:
