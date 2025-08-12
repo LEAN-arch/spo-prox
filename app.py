@@ -6264,45 +6264,26 @@ def render_rtm_builder():
     """)
     
     st.info("""
-    **Interactive Demo:** You are the Head of Engineering or Validation.
-    1.  Select the **Project Type** you are leading.
-    2.  Use the **DfX Effort Sliders** in the sidebar to allocate engineering resources to different design philosophies.
-    3.  Observe the impact in real-time on the **KPI Dashboard** and the **Performance Profile** radar chart.
+    **Interactive Demo:** You are the Program Manager for a complex tech transfer.
+    1.  The Sankey diagram shows the full network of requirements and dependencies.
+    2.  Use the **checkboxes in the sidebar** to mark different validation streams as "complete."
+    3.  Observe how the chart updates in real-time, showing the flow of completed work (green) and highlighting the remaining dependencies.
     """)
-    
-    project_type = st.selectbox(
-        "Select a Project Type to Simulate DfX Impact:",
-        ["Pharma Process (MAb)", "Pharma Assay (ELISA)", "Instrument (Liquid Handler)", "Software (LIMS)"]
-    )
 
     with st.sidebar:
-        st.subheader("DfX Effort Allocation")
-        mfg_effort = st.slider("Manufacturing & Assembly Effort (DFM/DFA)", 0, 10, 5, 1, help="Focus on part count reduction, using standard components, and designing for automated assembly.")
-        quality_effort = st.slider("Quality & Reliability Effort (DFR/DFT)", 0, 10, 5, 1, help="Focus on building in reliability, designing for robust performance, and adding features to make QC testing faster and more accurate.")
-        sustainability_effort = st.slider("Sustainability & Supply Chain Effort (DFE)", 0, 10, 5, 1, help="Focus on using standard/recyclable materials, reducing energy use, and designing for easy disassembly.")
-        ux_effort = st.slider("Service & User Experience Effort (DFS/DFUX)", 0, 10, 5, 1, help="Focus on making the device easy to use, service, and maintain, reducing long-term operational costs and human error.")
+        st.subheader("RTM Completion Status")
+        completed_streams = []
+        if st.checkbox("Process Validation Complete", value=False):
+            completed_streams.append("Process")
+        if st.checkbox("Assay Validation Complete", value=False):
+            completed_streams.append("Assay")
+        if st.checkbox("Instrument Qualification Complete", value=False):
+            completed_streams.append("Instrument")
+        if st.checkbox("Software Validation Complete", value=False):
+            completed_streams.append("Software")
 
-    # --- THIS IS THE KEY FIX ---
-    # Call the cached function with simple, hashable arguments.
-    fig_radar, fig_cost, kpis, categories = plot_dfx_dashboard(
-        project_type, mfg_effort, quality_effort, sustainability_effort, ux_effort
-    )
-    # --- END OF FIX ---
-
-    st.header("Project KPI Dashboard")
-    kpi_cols = st.columns(len(kpis['baseline']))
-    for i, col in enumerate(kpi_cols):
-        base_val = kpis['baseline'][i]
-        opt_val = kpis['optimized'][i]
-        delta = opt_val - base_val
-        col.metric(categories[i].replace('<br>', ' '), f"{opt_val:.1f}", f"{delta:.1f}")
-
-    st.header("Design Comparison Visualizations")
-    col_radar, col_cost = st.columns(2)
-    with col_radar:
-        st.plotly_chart(fig_radar, use_container_width=True)
-    with col_cost:
-        st.plotly_chart(fig_cost, use_container_width=True)
+    fig_sankey, _, _ = plot_rtm_sankey(completed_streams)
+    st.plotly_chart(fig_sankey, use_container_width=True)
     
     st.divider()
     st.subheader("Deeper Dive")
