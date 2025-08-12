@@ -11031,22 +11031,24 @@ Different types of process failures leave different signatures in the data. A ro
 # MAIN APP LOGIC AND LAYOUT
 # ==============================================================================
 
+# ==============================================================================
+# MAIN APP LOGIC AND LAYOUT
+# ==============================================================================
+
 # --- Initialize Session State ---
 if 'current_view' not in st.session_state:
     st.session_state.current_view = 'Introduction'
 
 # --- Sidebar Navigation ---
-# The sidebar will be visible even before login, which is good UX.
 with st.sidebar:
     st.title("🧰 Toolkit Navigation")
     
     if st.sidebar.button("🚀 Project Framework", use_container_width=True):
         st.session_state.current_view = 'Introduction'
-        # No rerun needed here, the main logic will handle it
+        st.rerun()
 
     st.divider()
 
-    # --- FIX: all_tools dictionary and the for loop are now correctly indented inside the 'with st.sidebar:' block ---
     all_tools = {
         "ACT 0: PLANNING & STRATEGY": [
             "TPP & CQA Cascade",
@@ -11114,20 +11116,25 @@ with st.sidebar:
         for tool in act_tools:
             if st.button(tool, key=tool, use_container_width=True):
                 st.session_state.current_view = tool
-                # No rerun needed here either
+                st.rerun()
 
-# --- Main Content Area Dispatcher ---
-# This part of the code will ONLY run if the password is correct.
+# ==============================================================================
+# MAIN APP EXECUTION GATE
+# ==============================================================================
+if not check_password():
+    st.stop()  # Do not continue if check_password is not True.
+
+# ==============================================================================
+# MAIN CONTENT AREA DISPATCHER (CORRECTED STRUCTURE)
+# ==============================================================================
 view = st.session_state.current_view
 
 if view == 'Introduction':
     render_introduction_content()
 else:
-    # All of the following code is now correctly indented inside this 'else' block.
+    # This entire block only runs when view is NOT 'Introduction'
     st.header(f"🔧 {view}")
 
-
-    # --- FIX: Extra indentation at the end of this dictionary is removed ---
     PAGE_DISPATCHER = {
         # Act 0
         "TPP & CQA Cascade": render_tpp_cqa_cascade,
@@ -11190,9 +11197,9 @@ else:
     }
     
     # This logic is now correctly indented inside the 'else' block as well.
-if view in PAGE_DISPATCHER:
-    PAGE_DISPATCHER[view]()
-else:
-    st.error("Error: Could not find the selected tool to render.")
-    st.session_state.current_view = 'Introduction'
-    st.rerun()
+    if view in PAGE_DISPATCHER:
+        PAGE_DISPATCHER[view]()
+    else:
+        st.error("Error: Could not find the selected tool to render.")
+        st.session_state.current_view = 'Introduction'
+        st.rerun()
