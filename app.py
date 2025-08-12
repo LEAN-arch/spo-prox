@@ -412,8 +412,18 @@ def plot_act_grouped_timeline():
         {'name': 'TCN + CUSUM', 'act': 3, 'year': 2018, 'inventor': 'Bai, Kolter & Koltun', 'desc': 'Hybrid model using AI to de-seasonalize data for ultra-sensitive drift detection.'},
         {'name': 'LSTM Autoencoder + Hybrid Monitoring', 'act': 3, 'year': 1997, 'inventor': 'Hochreiter/Schmidhuber', 'desc': 'Unsupervised anomaly detection by learning a process\'s normal dynamic fingerprint.'},
     ]
+]
     all_tools_data.sort(key=lambda x: (x['act'], x['year']))
-    act_ranges = {0: (-5, 20), 1: (25, 65), 2: (70, 90), 3: (95, 140)}
+    
+    # --- THIS IS THE FIX: Expanded ranges to give each tool more horizontal space ---
+    act_ranges = {
+        0: (-5, 30),    # Was (-5, 20) -> More space for 8 tools
+        1: (35, 85),    # Was (25, 65) -> More space for 16 tools
+        2: (90, 115),   # Was (70, 90) -> More space for 10 tools
+        3: (120, 180)   # Was (95, 140) -> More space for 19 tools
+    }
+    # --- END OF FIX ---
+    
     tools_by_act = {0: [], 1: [], 2: [], 3: []}
     for tool in all_tools_data: tools_by_act[tool['act']].append(tool)
     for act_num, tools_in_act in tools_by_act.items():
@@ -421,24 +431,33 @@ def plot_act_grouped_timeline():
         x_coords = np.linspace(start, end, len(tools_in_act))
         for i, tool in enumerate(tools_in_act):
             tool['x'] = x_coords[i]
-    y_offsets = [3.0, -3.0, 3.5, -3.5, 2.5, -2.5, 4.0, -4.0, 2.0, -2.0, 4.5, -4.5, 1.5, -1.5]
+            
+    # --- THIS IS A SUBTLE FIX: Added more vertical levels to reduce density ---
+    y_offsets = [3.0, -3.0, 3.8, -3.8, 2.5, -2.5, 4.5, -4.5, 2.0, -2.0, 5.0, -5.0, 1.5, -1.5]
+    # --- END OF FIX ---
+    
     for i, tool in enumerate(all_tools_data):
         tool['y'] = y_offsets[i % len(y_offsets)]
     
     fig = go.Figure()
+    
+    # --- THIS IS THE FIX: Updated boundaries to match the new act_ranges ---
     acts = {
-        0: {'name': 'Act 0: Planning & Strategy', 'color': 'rgba(128, 128, 128, 0.9)', 'boundary': (-10, 23)},
-        1: {'name': 'Act I: Characterization', 'color': 'rgba(0, 128, 128, 0.9)', 'boundary': (23, 68)},
-        2: {'name': 'Act II: Qualification & Transfer', 'color': 'rgba(0, 104, 201, 0.9)', 'boundary': (68, 93)},
-        3: {'name': 'Act III: Lifecycle Management', 'color': 'rgba(100, 0, 100, 0.9)', 'boundary': (93, 145)}
+        0: {'name': 'Act 0: Planning & Strategy', 'color': 'rgba(128, 128, 128, 0.9)', 'boundary': (-10, 33)},
+        1: {'name': 'Act I: Characterization', 'color': 'rgba(0, 128, 128, 0.9)', 'boundary': (33, 88)},
+        2: {'name': 'Act II: Qualification & Transfer', 'color': 'rgba(0, 104, 201, 0.9)', 'boundary': (88, 118)},
+        3: {'name': 'Act III: Lifecycle Management', 'color': 'rgba(100, 0, 100, 0.9)', 'boundary': (118, 185)}
     }
+    # --- END OF FIX ---
     
     for act_info in acts.values():
         x0, x1 = act_info['boundary']
-        fig.add_shape(type="rect", x0=x0, y0=-5.0, x1=x1, y1=5.0, line=dict(width=0), fillcolor='rgba(230, 230, 230, 0.7)', layer='below')
+        fig.add_shape(type="rect", x0=x0, y0=-6.0, x1=x1, y1=6.0, line=dict(width=0), fillcolor='rgba(230, 230, 230, 0.7)', layer='below')
         fig.add_annotation(x=(x0 + x1) / 2, y=7.0, text=f"<b>{act_info['name']}</b>", showarrow=False, font=dict(size=20, color="#555"))
 
-    fig.add_shape(type="line", x0=-5, y0=0, x1=140, y1=0, line=dict(color="black", width=3), layer='below')
+    # --- THIS IS THE FIX: Expanded the main timeline bar ---
+    fig.add_shape(type="line", x0=-5, y0=0, x1=180, y1=0, line=dict(color="black", width=3), layer='below')
+    # --- END OF FIX ---
 
     for act_num, act_info in acts.items():
         act_tools = [tool for tool in all_tools_data if tool['act'] == act_num]
