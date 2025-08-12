@@ -11123,6 +11123,7 @@ view = st.session_state.current_view
 if view == 'Introduction':
     render_introduction_content()
 else:
+    # All of the following code is now correctly indented inside this 'else' block.
     st.header(f"🔧 {view}")
 
 
@@ -11188,6 +11189,7 @@ else:
         "LSTM Autoencoder + Hybrid Monitoring": render_lstm_autoencoder_monitoring,
     }
     
+    # This logic is now correctly indented inside the 'else' block as well.
 if view in PAGE_DISPATCHER:
     PAGE_DISPATCHER[view]()
 else:
