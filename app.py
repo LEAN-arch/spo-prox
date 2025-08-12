@@ -352,12 +352,14 @@ def create_styled_v_model_table(df):
 # FIX: Replace the entire plot_act_grouped_timeline function with this new, complete version.
 @st.cache_data
 def plot_act_grouped_timeline():
-    """Generates the project-based timeline with all tools, including Act 0."""
+    """Generates the project-based timeline with all tools, including the new Act 0 modules."""
     all_tools_data = [
         # --- ACT 0 ---
         {'name': 'TPP & CQA Cascade', 'act': 0, 'year': 2009, 'inventor': 'ICH Q8', 'desc': 'Defines the "golden thread" of Quality by Design.'},
         {'name': 'Analytical Target Profile', 'act': 0, 'year': 2012, 'inventor': 'FDA/AAPS', 'desc': 'Creates the "contract" for a new analytical method.'},
         {'name': 'Quality Risk Management (QRM) Suite', 'act': 0, 'year': 1949, 'inventor': 'US Military', 'desc': 'Proactively identifies and mitigates process risks (FMEA, FTA, etc.).'},
+        {'name': 'Design Controls & DHF', 'act': 0, 'year': 1990, 'inventor': 'FDA (SMDA)', 'desc': 'The formal, auditable framework for medical device and complex system development.'},
+        {'name': 'FAT & SAT', 'act': 0, 'year': 1970, 'inventor': 'Good Engineering Practice', 'desc': 'The "Trust, but Verify" framework for accepting new equipment and systems.'},
         {'name': 'Design for Excellence (DfX)', 'act': 0, 'year': 1980, 'inventor': 'Concurrent Engineering', 'desc': 'Optimizing design for the entire product lifecycle.'},
         {'name': 'Validation Master Plan', 'act': 0, 'year': 1990, 'inventor': 'GAMP Forum', 'desc': 'The master project plan for any validation effort.'},
         {'name': 'Requirements Traceability Matrix', 'act': 0, 'year': 1980, 'inventor': 'Systems Engineering', 'desc': 'Ensures all requirements are built and tested.'},
@@ -482,14 +484,17 @@ def plot_chronological_timeline():
         {'name': 'Attribute Agreement Analysis', 'year': 1960, 'inventor': 'Cohen/Fleiss', 'reason': 'Psychologists needed to measure the reliability of judgments between raters, corrected for chance agreement.'},
         {'name': 'Kalman Filter + Residual Chart', 'year': 1960, 'inventor': 'Rudolf E. Kálmán', 'reason': 'The Apollo program needed a way to navigate to the moon using noisy sensor data, requiring optimal state estimation.'},
         {'name': 'LOD & LOQ', 'year': 1968, 'inventor': 'Lloyd Currie (NIST)', 'reason': 'To create a harmonized, statistically rigorous framework for defining the sensitivity of analytical methods.'},
+        {'name': 'FAT & SAT', 'year': 1970, 'inventor': 'Good Engineering Practice', 'reason': 'To de-risk large capital projects by finding issues at the factory, not the final site.'},
         {'name': 'Time Series Analysis', 'year': 1970, 'inventor': 'Box & Jenkins', 'reason': 'To provide a comprehensive statistical methodology for forecasting and control in industrial and economic processes.'},
         {'name': 'Multivariate Analysis (MVA)', 'year': 1975, 'inventor': 'Herman Wold', 'reason': 'To model "data-rich but theory-poor" systems in social science, later adapted for chemometrics.'},
         {'name': 'Core Validation Parameters', 'year': 1980, 'inventor': 'ICH / FDA', 'reason': 'Globalization of the pharmaceutical industry required harmonized standards for drug approval.'},
+        {'name': 'Requirements Traceability Matrix', 'year': 1980, 'inventor': 'Systems Engineering', 'reason': 'To manage complexity in large-scale projects, ensuring all requirements are built and tested.'},
         {'name': 'Run Validation (Westgard)', 'year': 1981, 'inventor': 'James Westgard', 'reason': 'The automation of clinical labs demanded a more sensitive, diagnostic system for daily quality control.'},
         {'name': 'Gage R&R / VCA', 'year': 1982, 'inventor': 'AIAG', 'reason': 'The US auto industry, facing a quality crisis, needed to formalize the analysis of their measurement systems.'},
         {'name': 'Method Comparison', 'year': 1986, 'inventor': 'Bland & Altman', 'reason': 'A direct response to the widespread misuse of correlation for comparing clinical measurement methods.'},
         {'name': 'Process Capability (Cpk)', 'year': 1986, 'inventor': 'Bill Smith (Motorola)', 'reason': 'The Six Sigma quality revolution at Motorola popularized a simple metric to quantify process capability.'},
         {'name': 'Equivalence Testing (TOST)', 'year': 1987, 'inventor': 'Donald Schuirmann', 'reason': 'The rise of the generic drug industry created a regulatory need to statistically *prove* equivalence.'},
+        {'name': 'Design Controls & DHF', 'year': 1990, 'inventor': 'FDA (SMDA)', 'reason': 'A response to medical device failures caused by poor design, mandating a formal, auditable process.'},
         {'name': 'Validation Master Plan', 'year': 1990, 'inventor': 'GAMP Forum', 'reason': 'Increasingly complex computerized systems required a high-level strategic plan for validation.'},
         {'name': 'Bayesian Inference', 'year': 1990, 'inventor': 'Metropolis et al.', 'reason': 'The explosion in computing power made simulation-based methods (MCMC) practical, unlocking Bayesian inference.'},
         {'name': 'MEWMA + XGBoost Diagnostics', 'year': 1992, 'inventor': 'Lowry et al.', 'reason': 'A need to generalize the sensitive EWMA chart to monitor multiple correlated variables at once.'},
@@ -551,8 +556,8 @@ def create_toolkit_conceptual_map():
     }
     sub_structure = {
         'Risk Management': ['Quality Risk Management (QRM) Suite'],
-        'Requirements Definition': ['TPP & CQA Cascade', 'Analytical Target Profile (ATP) Builder', 'Requirements Traceability Matrix (RTM)'],
-        'Design Principles': ['Design for Excellence (DfX)'],
+        'Requirements Definition': ['TPP & CQA Cascade', 'Analytical Target Profile (ATP) Builder', 'Design Controls & DHF', 'Requirements Traceability Matrix (RTM)'],
+        'Design Principles': ['Design for Excellence (DfX)', 'FAT & SAT'],
         'Foundational Statistics': ['Confidence Interval Concept', 'Confidence Intervals for Proportions', 'Bayesian Inference', 'Comprehensive Diagnostic Validation'],
         'Measurement Systems Analysis': ['Gage R&R / VCA', 'Attribute Agreement Analysis', 'Method Comparison', 'LOD & LOQ'],
         'Experimental Design': ['Assay Robustness (DOE)', 'Process Optimization: From DOE to AI', 'Mixture Design (Formulations)', 'Split-Plot Designs', 'Causal Inference'],
@@ -563,7 +568,9 @@ def create_toolkit_conceptual_map():
         'Time Series & Sequential': ['Time Series Analysis', 'BOCPD + ML Features', 'Kalman Filter + Residual Chart', 'TCN + CUSUM', 'RL for Chart Tuning', 'Advanced AI Concepts']
     }
     tool_origins = {
-        'TPP & CQA Cascade': 'Biostatistics', 'Analytical Target Profile (ATP) Builder': 'Biostatistics', 'Quality Risk Management (QRM) Suite': 'Industrial Quality Control', 'Design for Excellence (DfX)': 'Industrial Quality Control', 'Validation Master Plan (VMP) Builder': 'Industrial Quality Control', 'Requirements Traceability Matrix (RTM)': 'Industrial Quality Control',
+        'TPP & CQA Cascade': 'Biostatistics', 'Analytical Target Profile (ATP) Builder': 'Biostatistics', 'Quality Risk Management (QRM) Suite': 'Industrial Quality Control', 
+        'Design Controls & DHF': 'Industrial Quality Control', 'FAT & SAT': 'Industrial Quality Control',
+        'Design for Excellence (DfX)': 'Industrial Quality Control', 'Validation Master Plan (VMP) Builder': 'Industrial Quality Control', 'Requirements Traceability Matrix (RTM)': 'Industrial Quality Control',
         'Confidence Interval Concept': 'Statistics', 'Confidence Intervals for Proportions': 'Statistics', 'Equivalence Testing (TOST)': 'Biostatistics', 'Bayesian Inference': 'Statistics', 'ROC Curve Analysis': 'Statistics', 'Comprehensive Diagnostic Validation': 'Biostatistics',
         'Gage R&R / VCA': 'Industrial Quality Control', 'Attribute Agreement Analysis': 'Statistics', 'Method Comparison': 'Biostatistics', 'LOD & LOQ': 'Statistics',
         'Assay Robustness (DOE)': 'Statistics', 'Process Optimization: From DOE to AI': 'Data Science / ML', 'Mixture Design (Formulations)': 'Statistics', 'Split-Plot Designs': 'Statistics', 'Causal Inference': 'Data Science / ML',
