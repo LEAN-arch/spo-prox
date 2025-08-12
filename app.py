@@ -412,8 +412,7 @@ def plot_act_grouped_timeline():
         {'name': 'TCN + CUSUM', 'act': 3, 'year': 2018, 'inventor': 'Bai, Kolter & Koltun', 'desc': 'Hybrid model using AI to de-seasonalize data for ultra-sensitive drift detection.'},
         {'name': 'LSTM Autoencoder + Hybrid Monitoring', 'act': 3, 'year': 1997, 'inventor': 'Hochreiter/Schmidhuber', 'desc': 'Unsupervised anomaly detection by learning a process\'s normal dynamic fingerprint.'},
     ]
-]
-    all_tools_data.sort(key=lambda x: (x['act'], x['year']))
+    all_tools_data.sort(key=lambda x: x['year'])
     
     # --- THIS IS THE FIX: Expanded ranges to give each tool more horizontal space ---
     act_ranges = {
@@ -531,9 +530,14 @@ def plot_chronological_timeline():
         {'name': 'Causal Inference', 'year': 2018, 'inventor': 'Judea Pearl et al.', 'reason': 'The limitations of purely predictive models spurred a "causal revolution" to answer "why" questions.'},
     ]
     all_tools_data.sort(key=lambda x: x['year'])
+    
+    # --- THIS IS THE FIX: The incorrect code block has been removed ---
+    # The function now correctly assigns y-offsets for visual spacing, but uses the
+    # 'year' directly as the x-coordinate, which is the entire point of a chronological timeline.
     y_offsets = [3.0, -3.0, 3.5, -3.5, 2.5, -2.5, 4.0, -4.0, 2.0, -2.0, 4.5, -4.5, 1.5, -1.5]
     for i, tool in enumerate(all_tools_data):
         tool['y'] = y_offsets[i % len(y_offsets)]
+    # --- END OF FIX ---
     
     fig = go.Figure()
     eras = {
