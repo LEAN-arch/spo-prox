@@ -90,53 +90,31 @@ def get_act_for_tool(tool_name, tool_dict):
     """Finds the Act number (0-3) for a given tool name."""
     if tool_name == 'Introduction':
         return 0
+        
     for act_title, tools in tool_dict.items():
         if tool_name in tools:
-            # Extracts the number from a string like "ACT 1: ..."
-            return int(act_title.split(':')[0].split(' ')[1])
+            try:
+                # --- THIS IS THE CORRECTED, MORE ROBUST LOGIC ---
+                # Example: "ACT III: LIFECYCLE..."
+                # 1. Find the part before the colon: "ACT III"
+                # 2. Split by space: ["ACT", "III"] or ["ACT", "0"]
+                # 3. Take the last part: "III" or "0"
+                # 4. Convert Roman numeral or digit to integer.
+                
+                key_part = act_title.split(':')[0].strip() # -> "ACT III"
+                num_part = key_part.split(' ')[-1] # -> "III"
+                
+                # Handle Roman numerals and digits
+                roman_map = {'I': 1, 'II': 2, 'III': 3}
+                if num_part in roman_map:
+                    return roman_map[num_part]
+                else:
+                    return int(num_part) # This handles "0"
+            except (ValueError, IndexError):
+                # Fallback in case the title format is unexpected
+                return -1
+                
     return -1 # Should not happen if all tools are in the dict
-
-def check_access(all_tools_dict):
-    """
-    Returns `True` if the user has access to the current view.
-    Otherwise, it displays a login form and returns `False`.
-    """
-    required_level = get_act_for_tool(st.session_state.current_view, all_tools_dict)
-    unlocked_level = st.session_state.get("unlocked_act", -1)
-
-    # If user's unlocked level is high enough for the required view, grant access.
-    if unlocked_level >= required_level:
-        return True
-
-    # --- If access is not granted, show the login form ---
-    def password_entered():
-        """Checks the entered password against all secrets."""
-        entered_password = st.session_state["password"]
-        
-        # Check against all defined passwords
-        for i in range(4):
-            secret_key = f"PASSWORD_ACT{i}"
-            if secret_key in st.secrets and entered_password == st.secrets[secret_key]:
-                st.session_state["unlocked_act"] = i
-                st.session_state["password_correct"] = True
-                del st.session_state["password"] # Clear password from state
-                return
-
-        # If no password matched
-        st.session_state["password_correct"] = False
-
-    st.title("Biotech V&V Analytics Toolkit 🔬")
-    st.markdown("---")
-    st.subheader(f"Access to '{st.session_state.current_view}' (Act {required_level}) requires a password.")
-    st.text_input(
-        "Enter Access Password", type="password", on_change=password_entered, key="password"
-    )
-
-    if "password_correct" in st.session_state and not st.session_state["password_correct"]:
-        st.error("😕 Password incorrect or does not grant access to this level. Please try again.")
-    
-    # User is still on the login page, so access is not yet granted.
-    return False
 
 #============================================================================================== HELPER FUNCTIONS ================================================================================================================
 
