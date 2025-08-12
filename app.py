@@ -11188,9 +11188,9 @@ else:
         "LSTM Autoencoder + Hybrid Monitoring": render_lstm_autoencoder_monitoring,
     }
     
-   if view in PAGE_DISPATCHER:
-        PAGE_DISPATCHER[view]()
-    else:
-        st.error("Error: Could not find the selected tool to render.")
-        st.session_state.current_view = 'Introduction'
-        st.rerun()
+if view in PAGE_DISPATCHER:
+    PAGE_DISPATCHER[view]()
+else:
+    st.error("Error: Could not find the selected tool to render.")
+    st.session_state.current_view = 'Introduction'
+    st.rerun()
