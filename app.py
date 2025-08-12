@@ -80,6 +80,41 @@ st.markdown("""
 # ==============================================================================
 # ALL HELPER & PLOTTING FUNCTIONS
 # ==============================================================================
+
+
+# ==============================================================================
+# NEW PASSWORD PROTECTION FUNCTION (ADD THIS TO YOUR SCRIPT)
+# ==============================================================================
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["PASSWORD"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store password.
+        else:
+            st.session_state["password_correct"] = False
+
+    # Return True if the password is correct
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Show input for password.
+    st.title("Biotech V&V Analytics Toolkit 🔬")
+    st.markdown("---")
+    st.subheader("Please enter the password to access the beta version.")
+    st.text_input(
+        "Password", type="password", on_change=password_entered, key="password"
+    )
+
+    if "password_correct" in st.session_state and not st.session_state["password_correct"]:
+        st.error("😕 Password incorrect. Please try again.")
+    
+    return False
+
+#============================================================================================== HELPER FUNCTIONS ================================================================================================================
+
 @st.cache_data
 def plot_v_model():
     """
@@ -11001,12 +11036,13 @@ if 'current_view' not in st.session_state:
     st.session_state.current_view = 'Introduction'
 
 # --- Sidebar Navigation ---
+# The sidebar will be visible even before login, which is good UX.
 with st.sidebar:
     st.title("🧰 Toolkit Navigation")
     
     if st.sidebar.button("🚀 Project Framework", use_container_width=True):
         st.session_state.current_view = 'Introduction'
-        st.rerun()
+        # No rerun needed here, the main logic will handle it
 
     st.divider()
 
@@ -11078,15 +11114,17 @@ with st.sidebar:
         for tool in act_tools:
             if st.button(tool, key=tool, use_container_width=True):
                 st.session_state.current_view = tool
-                st.rerun()
+                # No rerun needed here either
 
 # --- Main Content Area Dispatcher ---
+# This part of the code will ONLY run if the password is correct.
 view = st.session_state.current_view
 
 if view == 'Introduction':
     render_introduction_content()
 else:
     st.header(f"🔧 {view}")
+
 
     # --- FIX: Extra indentation at the end of this dictionary is removed ---
     PAGE_DISPATCHER = {
@@ -11150,8 +11188,7 @@ else:
         "LSTM Autoencoder + Hybrid Monitoring": render_lstm_autoencoder_monitoring,
     }
     
-    # --- FIX: This block is now correctly indented to be at the same level as the PAGE_DISPATCHER dictionary ---
-    if view in PAGE_DISPATCHER:
+   if view in PAGE_DISPATCHER:
         PAGE_DISPATCHER[view]()
     else:
         st.error("Error: Could not find the selected tool to render.")
