@@ -1194,29 +1194,165 @@ def plot_dfx_dashboard(project_type, mfg_effort, quality_effort, sustainability_
     return fig_radar, fig_cost, kpis, profile['categories'], base_costs, optimized_costs
 #==================================================================ACT 0 END ==============================================================================================================================
 #==========================================================================================================================================================================================================
-@st.cache_data
-def plot_eda_dashboard(df, numeric_cols, cat_cols):
-    """
-    Generates a professional-grade, multi-part EDA dashboard from an uploaded dataframe.
-    """
-    # Plot 1: Correlation Heatmap
-    corr_matrix = df[numeric_cols].corr()
-    fig_heatmap = px.imshow(corr_matrix, text_auto=".2f", aspect="auto",
-                            color_continuous_scale='RdBu_r', range_color=[-1,1],
-                            title="<b>1. Correlation Heatmap</b>")
+# ======================================= 3 files for EDA, first load datasets follows =================
+def apply_gadget_transformations(df, noise_level, missing_pct, outlier_magnitude, categorical_effect):
+    """Takes a DataFrame and applies transformations based on user-controlled gadgets."""
+    df_mod = df.copy()
+    numeric_cols = df_mod.select_dtypes(include=np.number).columns
 
-    # Plot 2: Scatter Plot Matrix (Pair Plot)
-    fig_pairplot = px.scatter_matrix(df, dimensions=numeric_cols, color=cat_cols[0] if cat_cols else None,
-                                     title="<b>2. Scatter Plot Matrix (Pair Plot)</b>")
-    fig_pairplot.update_traces(diagonal_visible=False)
+    # 1. Add Random Noise
+    if noise_level > 0:
+        for col in numeric_cols:
+            noise = np.random.normal(0, df_mod[col].std() * noise_level / 10, len(df_mod))
+            df_mod[col] += noise
 
-    # Plot 3: Univariate Distribution Plots
-    fig_hist = make_subplots(rows=len(numeric_cols), cols=1, subplot_titles=[f"Distribution of {col}" for col in numeric_cols])
-    for i, col in enumerate(numeric_cols):
-        fig_hist.add_trace(go.Histogram(x=df[col], name=col), row=i+1, col=1)
-    fig_hist.update_layout(title_text="<b>3. Univariate Distributions</b>", showlegend=False, height=250*len(numeric_cols))
+    # 2. Inject Categorical Effect
+    if 'Raw_Material_Lot' in df_mod.columns and 'Yield (%)' in df_mod.columns:
+        df_mod.loc[df_mod['Raw_Material_Lot'] == 'Lot B', 'Yield (%)'] += categorical_effect
+    if 'Operator' in df_mod.columns and 'Dispense_Volume (µL)' in df_mod.columns:
+        df_mod.loc[df_mod['Operator'] == 'Alice', 'Dispense_Volume (µL)'] += categorical_effect
+
+    # 3. Inject Outlier
+    if outlier_magnitude > 0:
+        target_col = 'Yield (%)' if 'Yield (%)' in df_mod.columns else 'Dispense_Volume (µL)'
+        outlier_idx = df_mod.index[10] # Pick a consistent index for the outlier
+        df_mod.loc[outlier_idx, target_col] = df_mod[target_col].mean() + outlier_magnitude * df_mod[target_col].std()
+
+    # 4. Inject Missing Values
+    if missing_pct > 0:
+        target_col = 'Purity (%)' if 'Purity (%)' in df_mod.columns else 'Pressure (psi)'
+        n_missing = int(len(df_mod) * missing_pct / 100)
+        # Ensure we don't try to sample more than available rows if df is small
+        if n_missing > 0:
+            missing_indices = np.random.choice(df_mod.index.drop(outlier_idx, errors='ignore'), n_missing, replace=False)
+            df_mod.loc[missing_indices, target_col] = np.nan
+        
+    return df_mod
+
     
-    return fig_heatmap, fig_pairplot, fig_hist
+@st.cache_data
+def load_datasets():
+    """Generates more realistic sample datasets for EDA."""
+    np.random.seed(42)
+    # --- Pharma Process Data with more structure ---
+    n_pharma = 150
+    # Create a base yield that depends non-linearly on pH
+    base_yield = 85 + 15 * np.sin((np.random.normal(7.1, 0.15, n_pharma) - 6.8) * np.pi)
+    # Add a temperature effect
+    temp_effect = (np.random.normal(37, 0.8, n_pharma) - 37) * -1.5
+    # Add a categorical lot effect
+    lot = np.random.choice(['Lot A', 'Lot B', 'Lot C'], n_pharma, p=[0.5, 0.3, 0.2])
+    lot_effect = np.array([0 if l == 'Lot A' else (-5 if l == 'Lot B' else 3) for l in lot])
+    # Combine effects with noise
+    yield_final = base_yield + temp_effect + lot_effect + np.random.normal(0, 2.5, n_pharma)
+    # Purity is inversely related to yield with some noise
+    purity = 99.5 - (yield_final / 100) + np.random.normal(0, 0.2, n_pharma)
+    
+    pharma_data = pd.DataFrame({
+        'Yield (%)': np.clip(yield_final, 70, 100),
+        'Purity (%)': np.clip(purity, 97, 100),
+        'pH': base_yield / 15 + 6.8 + np.random.normal(0, 0.05, n_pharma), # Recreate pH with noise
+        'Temperature (°C)': (temp_effect / -1.5) + 37 + np.random.normal(0, 0.1, n_pharma),
+        'Raw_Material_Lot': lot
+    })
+    # Add realistic missing data and an outlier
+    pharma_data.loc[np.random.choice(pharma_data.index, 5, replace=False), 'Purity (%)'] = np.nan
+    pharma_data.loc[20, 'Yield (%)'] = 55.0
+
+    # --- Instrument Data with more structure ---
+    n_inst = 200
+    # Simulate wear-and-tear drift over time
+    time_drift = np.linspace(0, -2.5, n_inst)
+    operator = np.random.choice(['Alice', 'Bob', 'Charlie'], n_inst)
+    operator_effect = np.array([0 if o == 'Bob' else (-0.5 if o == 'Alice' else 0.3) for o in operator])
+    dispense_volume = 50 + time_drift + operator_effect + np.random.normal(0, 0.4, n_inst)
+    pressure = 20 + (dispense_volume - 50) * 0.8 + np.random.normal(0, 0.5, n_inst)
+    
+    instrument_data = pd.DataFrame({
+        'Dispense_Volume (µL)': dispense_volume,
+        'Pressure (psi)': pressure,
+        'Run_Time (sec)': np.random.gamma(20, 2, n_inst),
+        'Operator': operator
+    })
+    instrument_data.loc[150, 'Pressure (psi)'] = 45 # Outlier
+        
+    return {
+        "Pharma Manufacturing Process": pharma_data,
+        "Instrument Performance Data": instrument_data
+    }
+
+@st.cache_data
+def plot_eda_dashboard(df, numeric_cols, cat_cols, corr_method='pearson'):
+    """
+    Generates a professional-grade, multi-part EDA dashboard from a dataframe.
+    This version includes richer plots and dedicated categorical analysis.
+    """
+    # --- THIS IS THE FIX: CONVERT TUPLES BACK TO LISTS FOR PANDAS ---
+    numeric_cols = list(numeric_cols)
+    cat_cols = list(cat_cols)
+    # -----------------------------------------------------------------
+
+    figs = {}
+
+    # --- Plot 1: Correlation Heatmap (with method selection) ---
+    corr_matrix = df[numeric_cols].corr(method=corr_method)
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+    fig_heatmap = px.imshow(corr_matrix.mask(mask), text_auto=".2f", aspect="auto",
+                            color_continuous_scale=px.colors.diverging.RdBu,
+                            range_color=[-1, 1],
+                            title=f"<b>1. {corr_method.capitalize()} Correlation Heatmap</b>")
+    fig_heatmap.update_layout(height=500)
+    figs['heatmap'] = fig_heatmap
+
+# --- Plot 2: Scatter Plot Matrix ---
+    fig_pairplot = px.scatter_matrix(df, dimensions=numeric_cols,
+                                     color=cat_cols[0] if cat_cols else None,
+                                     title="<b>2. Scatter Plot Matrix</b>")
+    fig_pairplot.update_traces(diagonal_visible=False)
+    fig_pairplot.update_layout(height=700)
+    figs['pairplot'] = fig_pairplot
+
+    # --- Plot 3: Rich Univariate Distributions ---
+    rows = (len(numeric_cols) + 1) // 2
+    fig_dist = make_subplots(rows=rows, cols=2,
+                             subplot_titles=[f"Distribution of {col}" for col in numeric_cols])
+    for i, col in enumerate(numeric_cols):
+        row, c = i // 2 + 1, i % 2 + 1
+        # Histogram
+        fig_dist.add_trace(go.Histogram(x=df[col], name=col, histnorm='probability density',
+                                        marker_color='#636EFA', showlegend=False), row=row, col=c)
+        # KDE Curve
+        try:
+            kde = stats.gaussian_kde(df[col].dropna())
+            x_range = np.linspace(df[col].min(), df[col].max(), 100)
+            fig_dist.add_trace(go.Scatter(x=x_range, y=kde(x_range), mode='lines',
+                                          line=dict(color='darkorange', width=3),
+                                          name='KDE', showlegend=False), row=row, col=c)
+        except Exception:
+            pass # KDE can fail if there's no variance
+    fig_dist.update_layout(title_text="<b>3. Univariate Distributions (Histogram + KDE)</b>",
+                          height=250 * rows, showlegend=False)
+    figs['distributions'] = fig_dist
+    
+    # --- Plot 4: Dedicated Categorical Analysis (NEW) ---
+    if cat_cols:
+        cat_col = cat_cols[0]
+        rows_cat = (len(numeric_cols) + 1) // 2
+        fig_cat = make_subplots(rows=rows_cat, cols=2,
+                                subplot_titles=[f"{num_col} by {cat_col}" for num_col in numeric_cols])
+        for i, num_col in enumerate(numeric_cols):
+            row, c = i // 2 + 1, i % 2 + 1
+            box_traces = px.box(df, x=cat_col, y=num_col, color=cat_col).data
+            for trace in box_traces:
+                fig_cat.add_trace(trace, row=row, col=c)
+        fig_cat.update_layout(title_text=f"<b>4. Group Analysis by {cat_col}</b>",
+                              height=300 * rows_cat, showlegend=False)
+        figs['categorical'] = fig_cat
+    else:
+        # Create an empty figure to avoid a NameError if there are no cat_cols
+        figs['categorical'] = go.Figure().update_layout(title_text="<b>4. Group Analysis (No Categorical Variables Found)</b>")
+
+    return figs
 
 @st.cache_data
 def plot_ci_concept(n=30):
@@ -6347,41 +6483,30 @@ def render_eda_dashboard():
     
     st.info("""
     **Interactive Demo:** You are a Data Scientist receiving a new dataset.
-    1.  **Select a sample dataset** from the dropdown menu to simulate a real-world analysis scenario.
-    2.  The dashboard automatically generates a full EDA report for that dataset.
-    3.  Review the **Data Quality KPIs** to check for problems, then analyze the plots to understand the data's structure and relationships.
+    1.  **Select a sample dataset** to simulate a real-world analysis scenario.
+    2.  Use the **Interactive Data Gadgets** to deliberately corrupt the data and see how it impacts the plots.
+    3.  Review the KPIs and explore the tabs to see if you can detect the problems you introduced.
     """)
-
-    # --- NEW: Sample Dataset Selector ---
-    @st.cache_data
-    def load_datasets():
-        np.random.seed(42)
-        pharma_data = pd.DataFrame({
-            'Yield': np.random.normal(85, 5, 100),
-            'Purity': 100 - np.random.beta(2, 20, 100) * 5,
-            'pH': np.random.normal(7.1, 0.1, 100),
-            'Temperature': np.random.normal(37, 0.5, 100),
-            'Raw_Material_Lot': np.random.choice(['Lot A', 'Lot B', 'Lot C'], 100, p=[0.5, 0.3, 0.2])
-        })
-        pharma_data.loc[5:10, 'Purity'] = np.nan # Introduce missing data
-
-        instrument_data = pd.DataFrame({
-            'Dispense_Volume': np.random.normal(50, 0.5, 150),
-            'Pressure': np.random.normal(10, 0.2, 150) + (np.random.normal(50, 0.5, 150) - 50) * 0.1,
-            'Run_Time_sec': np.random.gamma(20, 2, 150),
-            'Operator': np.random.choice(['Alice', 'Bob', 'Charlie'], 150)
-        })
-        instrument_data.loc[20, 'Pressure'] = 25 # Introduce an outlier
-        
-        return {
-            "Pharma Manufacturing Process": pharma_data,
-            "Instrument Performance Data": instrument_data
-        }
 
     datasets = load_datasets()
     dataset_choice = st.selectbox("Select a Sample Dataset to Analyze:", list(datasets.keys()))
-    df = datasets[dataset_choice]
-    # --- END OF NEW SECTION ---
+    df_base = datasets[dataset_choice] # Load the pristine, base dataset
+
+    # --- Interactive Data Gadgets Expander ---
+    with st.expander("🔬 Interactive Data Gadgets (Play with the Data!)"):
+        st.markdown("Use these controls to deliberately introduce common data quality issues. Observe how they affect the plots below.")
+        g_col1, g_col2, g_col3, g_col4 = st.columns(4)
+        with g_col1:
+            noise_level = st.slider("Add Noise", 0, 10, 0, help="Injects random noise into all numeric variables. Watch how this makes trends in the scatter plots harder to see and increases the spread in the distribution plots.")
+        with g_col2:
+            categorical_effect = st.slider("Categorical Effect", -10, 10, 0, help="Introduces a systematic bias for one group ('Lot B' or 'Alice'). Watch how this group separates from the others in the 'Group Analysis' box plots.")
+        with g_col3:
+            outlier_magnitude = st.slider("Inject Outlier", 0, 10, 0, help="Adds a single, extreme outlier to a key variable. Watch for this point appearing far from the others on the box plots and scatter plots.")
+        with g_col4:
+            missing_pct = st.slider("Inject Missing Data (%)", 0, 20, 0, help="Randomly removes a percentage of data from one column. Watch the 'Missing Values' KPI increase and note how some plots might change.")
+    
+    # Apply the transformations from the gadgets to the base dataframe
+    df = apply_gadget_transformations(df_base, noise_level, missing_pct, outlier_magnitude, categorical_effect)
 
     st.header("Exploratory Data Analysis Report")
     st.dataframe(df.head())
@@ -6391,17 +6516,81 @@ def render_eda_dashboard():
     col1.metric("Rows", df.shape[0])
     col2.metric("Columns", df.shape[1])
     missing_values = df.isnull().sum().sum()
-    col3.metric("Missing Values", f"{missing_values}", help=f"Total number of empty cells. Found in columns: {', '.join(df.columns[df.isnull().any()].tolist())}")
+    col3.metric("Missing Values", f"{missing_values}", help=f"Total number of empty cells. Found in: {', '.join(df.columns[df.isnull().any()].tolist()) if missing_values > 0 else 'None'}")
     col4.metric("Duplicate Rows", f"{df.duplicated().sum()}")
     
     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
     cat_cols = df.select_dtypes(exclude=np.number).columns.tolist()
 
     if numeric_cols:
-        fig_heatmap, fig_pairplot, fig_hist = plot_eda_dashboard(df, numeric_cols, cat_cols)
-        st.plotly_chart(fig_heatmap, use_container_width=True)
-        st.plotly_chart(fig_pairplot, use_container_width=True)
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.markdown("### EDA Visualizations")
+        corr_method = st.radio("Select Correlation Method for Heatmap:", ('pearson', 'spearman'), horizontal=True,
+                                   help="**Pearson:** Measures straight-line (linear) relationships. Sensitive to outliers. **Spearman:** Measures any consistent increasing/decreasing (monotonic) relationship, even if it's curved. Robust to outliers.")
+        
+        with st.expander("Learn More: Pearson vs. Spearman Correlation"):
+            st.markdown("""
+            ### Pearson vs. Spearman: The Straight Road and the Winding Trail
+
+            Think of correlation as a way to understand how two process parameters are connected. But not all connections are the same. Choosing the right correlation method is like choosing the right map for your journey.
+
+            #### 🗺️ The Analogy: A Tale of Two Maps
+
+            *   **Pearson is a GPS Driving Map:** It's incredibly precise and powerful, but it works best when it assumes you can travel in a straight line from A to B. It measures the strength of a **linear** relationship. If the road is perfectly straight, the Pearson GPS is the best tool you can have. But if the road is winding, the GPS will get confused and tell you the destination is "not well correlated" with the start, even if you're consistently getting closer.
+
+            *   **Spearman is a Topographical Hiking Map:** It's more robust and doesn't assume the path is straight. It only cares if you are consistently going **uphill or downhill**. It measures the strength of a **monotonic** relationship. It can tell you with great confidence that a winding mountain trail always leads to the summit, even if the path isn't a straight line. It's less precise about the *shape* of the path but more reliable for detecting the *trend*.
+
+            ---
+
+            ### In-Depth Comparison
+
+            | Feature                    | **Pearson Correlation (r)**                                                                    | **Spearman Correlation (ρ, rho)**                                                                 |
+            | -------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+            | **What It Measures**       | The strength and direction of a **linear** relationship between two continuous variables.        | The strength and direction of a **monotonic** relationship between two variables.                 |
+            | **How It Works**           | Calculates the covariance of the two variables divided by the product of their standard deviations, using their **actual values**. | First, it converts the raw data into **ranks**, then calculates the Pearson correlation **on the ranks**. |
+            | **Key Assumption**         | The relationship between variables is linear. The data should ideally be normally distributed. | The relationship is monotonic (as X increases, Y consistently increases or decreases, but not necessarily in a straight line). No assumption about data distribution. |
+            | **Sensitivity to Outliers**| **Very sensitive.** A single outlier can dramatically skew the result.                          | **Highly robust.** Since it uses ranks, an outlier's exact value doesn't matter, only its position. |
+            | **Pros**                   | ✅ More powerful and statistically precise if the assumptions are met.<br>✅ Directly related to the slope of a linear regression. | ✅ Captures non-linear but monotonic relationships.<br>✅ Robust to outliers.<br>✅ Can be used with ordinal data. |
+            | **Cons**                   | ❌ Can be misleading or completely miss strong non-linear relationships.<br>❌ Easily distorted by outliers. | ❌ Less powerful than Pearson if the relationship is truly linear.<br>❌ Loses information about the magnitude of the values. |
+
+            ---
+
+            ### When to Use Which? A Practical Guide
+
+            This is the most important part. Your choice depends on your data and your question.
+
+            #### Use **Pearson** When:
+            *   ✅ **You have visually inspected a scatter plot, and the relationship looks like a straight line.** This is the most important check!
+            *   ✅ Your data is continuous and at least approximately normally distributed.
+            *   ✅ You have checked for and handled any significant outliers.
+            *   ✅ Your ultimate goal is to build a **linear regression model**, as Pearson correlation is a direct measure of the goodness of fit for such a model.
+
+            #### Use **Spearman** When:
+            *   ✅ **The relationship is non-linear but consistently increasing or decreasing.** Think of a saturation curve in a bioassay—it's not a line, but it's monotonic.
+            *   ✅ **Your data contains outliers that you cannot or do not want to remove.** Spearman will give you a much more stable and reliable result.
+            *   ✅ Your data is **ordinal** (e.g., rankings like "low," "medium," "high") or is not normally distributed.
+            *   ✅ You care more about establishing the **existence and direction of a relationship** than you do about its specific linear shape.
+
+            ### The Golden Rule
+            **Always visualize your data with a scatter plot first!** The plot is your best guide. If it looks like a straight line, Pearson is your powerful specialist. If it looks like a curve or has weird points, Spearman is your robust and trustworthy generalist.
+            """)
+        
+        # Generate ALL figures at once using the selected method and the MODIFIED dataframe.
+        figs = plot_eda_dashboard(df, tuple(numeric_cols), tuple(cat_cols), corr_method)
+        
+        eda_tabs = st.tabs(["📊 Relationships", "📈 Distributions", "🗂️ Group Analysis"])
+
+        with eda_tabs[0]:
+            st.plotly_chart(figs['heatmap'], use_container_width=True)
+            st.plotly_chart(figs['pairplot'], use_container_width=True)
+        
+        with eda_tabs[1]:
+            st.plotly_chart(figs['distributions'], use_container_width=True)
+
+        with eda_tabs[2]:
+            if cat_cols:
+                st.plotly_chart(figs['categorical'], use_container_width=True)
+            else:
+                st.warning("No categorical variables were found in this dataset to perform a group analysis.")
 
     st.divider()
     st.subheader("Deeper Dive")
