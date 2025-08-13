@@ -6657,6 +6657,158 @@ def render_qrm_suite():
         """)
 
 # ==============================================================================
+# UI RENDERING FUNCTION (V&V Strategy & Justification)
+# ==============================================================================
+def render_vv_strategy_justification():
+    """Renders the comprehensive module explaining the strategy and purpose of V&V."""
+    st.markdown("""
+    #### Purpose & Application: The "Why" Behind the Work
+    **Purpose:** To provide a concise, strategic, and technical rationale for why Verification & Validation is a non-negotiable cornerstone of regulated product and process development. This module answers the fundamental questions: "Why do we do this?" and "What value does it provide?"
+    
+    **Strategic Application:** This is the executive summary and the business case for the entire validation effort. Use this framework to justify projects to stakeholders, align cross-functional teams on a common purpose, and train new team members on the foundational principles of a robust quality system.
+    """)
+    
+    st.info("""
+    This module is a reference guide. Explore the tabs and the blueprint below to build a deep understanding of the V&V framework's core logic and its critical role in ensuring quality, safety, and compliance.
+    """)
+    
+    st.header("The Core Logic of V&V")
+    st.markdown("While the specifics depend on the context (product, manufacturing, software), the core logic is always the same: **Prove with objective evidence that what you built works as intended under real-world conditions.**")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("1️⃣ Verification: Did we build it right?")
+        st.markdown("This is an internal-facing question. It confirms that the design, code, or process meets all the pre-defined, documented requirements and specifications that your team created.")
+
+    with col2:
+        st.subheader("2️⃣ Validation: Did we build the right thing?")
+        st.markdown("This is an external-facing question. It confirms that the final product actually meets the user's needs and intended use in their real-world environment. A product can be perfectly verified but completely fail validation if it solves the wrong problem.")
+    
+    st.divider()
+
+    st.subheader("The Three Scopes of V&V in Regulated Industries")
+    st.markdown("V&V applies to more than just the final product. A complete strategy addresses three distinct layers:")
+    
+    scope_col1, scope_col2, scope_col3 = st.columns(3)
+    with scope_col1:
+        st.markdown("#### 1. V&V of the Product")
+        st.markdown("**📌 Main focus on product design and requirements.**")
+        st.markdown("""
+        - **Verification:** Confirms the product meets its design specifications (drawings, tolerances, software requirements, etc.).
+        - **Validation:** Confirms the final product meets its **intended use** under real-world conditions (usability, performance, safety).
+        - **Example:** For a diagnostic device, verification ensures the sensor measures correctly; validation ensures the device delivers accurate diagnoses in an actual clinical setting.
+        """)
+    with scope_col2:
+        st.markdown("#### 2. V&V of Processes & Instruments")
+        st.markdown("**📌 Critical for ensuring reliable manufacturing and testing.**")
+        st.markdown("""
+        - This includes manufacturing machines, test equipment, QC lab software, and even facilities.
+        - **IQ/OQ/PQ** (Installation/Operational/Performance Qualification) are the formal V&V activities for this scope.
+        - **Example:** A spectrophotometer used in quality control must be validated (qualified) to prove its measurements are accurate and repeatable. Without this, product test results would be unreliable.
+        """)
+    with scope_col3:
+        st.markdown("#### 3. V&V of Development Tools")
+        st.markdown("**📌 Essential for software and complex design.**")
+        st.markdown("""
+        - Ensures the tools used to *design or develop* the product (e.g., CAD software, genomic analysis platforms, simulators) work as intended.
+        - Required under standards like IEC 62304 (medical software) or FDA 21 CFR 820.70(i) (validation of software used in production).
+        - **Example:** Validating a LIMS system that manages lab data to ensure it does not corrupt or incorrectly alter information.
+        """)
+    
+    st.info("""
+    **💡 Clear Takeaway:**
+    - **Product V&V** ensures it meets requirements and user needs.
+    - **Process & Instrument V&V** ensures they produce reliable, consistent results.
+    - **Development Tool V&V** ensures the platforms used to design or test do not introduce errors.
+    """)
+
+    st.header("Justifications for V&V: The Pillars of a Quality System")
+    st.markdown("V&V is not just a testing phase; it's a multi-faceted business strategy. Each justification represents a different lens through which to view its value.")
+    
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏛️ Regulatory", "🛡️ Risk Management", "💰 Cost Avoidance", "📈 Stability & Capability", "🤝 Customer Confidence"])
+    
+    with tab1:
+        st.subheader("Regulatory Compliance")
+        st.markdown("""
+        In regulated industries like medical devices, aerospace, automotive, pharmaceuticals, and semiconductors, V&V isn't optional—it’s a legal requirement.
+        - **Standards:** Compliance with standards such as ISO 13485, FDA 21 CFR Part 820, ISO 26262, and IEC 62304 is mandatory.
+        - **The Bottom Line:** Without a complete, documented V&V package, you cannot legally ship, launch, or sell your product. It is the price of admission to the market.
+        """)
+    with tab2:
+        st.subheader("Risk Management")
+        st.markdown("""
+        V&V is the primary tool for proactive risk management. It is how you hunt for problems before they find you.
+        - **Early Detection:** It systematically identifies failure modes early in the lifecycle (e.g., design flaws, process weaknesses, software bugs).
+        - **Risk Reduction:** It reduces the probability of catastrophic, safety-related, or costly failures occurring after the product is released.
+        """)
+    with tab3:
+        st.subheader("Cost Avoidance")
+        st.markdown("""
+        The "Cost of Quality" is a well-established principle: the later in the lifecycle a problem is found, the more it costs to fix. V&V is a strategy to minimize this cost.
+        - **Exponential Cost:** Fixing an issue in production can be 10-100x more expensive than catching it in the design or pilot stages.
+        - **Tangible Savings:** A robust V&V program directly saves money by reducing rework, recalls, scrap material, and warranty claims.
+        """)
+    with tab4:
+        st.subheader("Process Stability & Capability")
+        st.markdown("""
+        V&V ensures that a process is not just correct once, but that it is robust enough to perform reliably over time.
+        - **Control Variation:** It uses statistical methods (like SPC) to ensure the process stays within specifications run after run.
+        - **Build Robustness:** It proves the process can tolerate normal, expected fluctuations (e.g., in temperature, material lots, or operators) without producing defects.
+        """)
+    with tab5:
+        st.subheader("Customer & Stakeholder Confidence")
+        st.markdown("""
+        The documented output of V&V is the objective proof that your product or system is fit for purpose.
+        - **Builds Trust:** It provides tangible evidence to regulators, investors, and customers that your solution is safe, effective, and reliable.
+        - **Protects Brand Reputation:** A strong V&V program is the best defense against the reputational damage caused by a product failure or recall.
+        """)
+
+    with st.expander("Expand to view the V&V Justification Blueprint", expanded=True):
+        st.markdown("### The V&V Justification Blueprint")
+        st.markdown("**Purpose:** To provide a concise, strategic and technical rationale for why Verification & Validation is non-negotiable in regulated product and process development.")
+        
+        st.markdown("#### Strategic Justifications")
+        st.markdown("""
+        | Driver                  | Why It Matters                                             | Outcome                                                    |
+        | ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
+        | **Regulatory Compliance** | Required by ISO, FDA, IEC, and other regulations.          | Legal clearance to sell, launch, or ship.                  |
+        | **Risk Management**       | Identifies and mitigates failure modes early.              | Reduced probability of safety, quality, or reliability issues. |
+        | **Cost Avoidance**        | Issues found late cost 10–100× more to fix.                 | Reduced scrap, rework, warranty claims, and recalls.       |
+        | **Market & Customer Trust** | Demonstrates safety, effectiveness, and reliability.       | Higher adoption, customer confidence, brand reputation.      |
+        | **Continuous Improvement**| Feeds real-world feedback into design/process refinements. | Sustained product performance and market competitiveness.  |
+        """)
+
+        st.markdown("#### Technical Objectives")
+        st.markdown("""
+        - **Control Variation:**
+          - Keep outputs within specifications across production runs.
+          - Apply SPC, capability analysis, and tolerance stacking.
+        - **Build Robustness:**
+          - Design to handle normal fluctuations in materials, operators, and environment without falling out of spec.
+          - Use DOE, stress testing, and worst-case analysis.
+        - **Prove Reliability Under Real-World Conditions:**
+          - Include aging, environmental, and stress testing.
+          - Demonstrate long-term stability and performance.
+        - **Document the Evidence:**
+          - Ensure all test plans, results, deviations, and justifications are recorded to create an audit-ready trail.
+        """)
+
+        st.markdown("#### The ROI Equation")
+        st.latex(r"\text{V\&V Investment} \ll \text{Cost of (Failure + Non-Compliance + Market Loss)}")
+        st.markdown("""
+        V&V reduces:
+        - **Time-to-market** (by avoiding redesign cycles late in development)
+        - **Financial risk** (through early issue detection)
+        - **Regulatory delays** (by providing clean, audit-ready documentation)
+        """)
+
+    st.success("""
+    **Executive Summary Statement:**
+    
+    "V&V isn’t just testing — it’s the structured proof that our product is safe, effective, compliant, and robust enough to thrive in the real world, while controlling variation and protecting the company from avoidable risk and cost.”
+    """)
+
+# ==============================================================================
 # UI RENDERING FUNCTION (Design Controls & DHF)
 # ==============================================================================
 def render_design_controls_dhf():
