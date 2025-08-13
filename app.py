@@ -444,7 +444,9 @@ def plot_act_grouped_timeline():
     
     for act_info in acts.values():
         x0, x1 = act_info['boundary']
-        fig.add_shape(type="rect", x0=x0, y0=-6.0, x1=x1, y1=6.0, line_dict(width=0), fillcolor='rgba(230, 230, 230, 0.7)', layer='below')
+        # --- THIS IS THE FIX ---
+        fig.add_shape(type="rect", x0=x0, y0=-6.0, x1=x1, y1=6.0, line=dict(width=0), fillcolor='rgba(230, 230, 230, 0.7)', layer='below')
+        # --- END OF FIX ---
         fig.add_annotation(x=(x0 + x1) / 2, y=7.0, text=f"<b>{act_info['name']}</b>", showarrow=False, font=dict(size=20, color="#555"))
 
     fig.add_shape(type="line", x0=-5, y0=0, x1=180, y1=0, line=dict(color="black", width=3), layer='below')
@@ -472,7 +474,7 @@ def plot_act_grouped_timeline():
 def plot_chronological_timeline():
     """Generates the chronological timeline, now including all tools."""
     all_tools_data = [
-        {'name': 'Linearity & Range', 'year': 1805, 'inventor': 'Legendre/Gauss', 'reason': 'To predict the orbits of celestial bodies from a limited number of observations.'},
+        # --- 'Linearity & Range' (year 1805) has been removed from this list ---
         {'name': 'Process Stability', 'year': 1924, 'inventor': 'Walter Shewhart', 'reason': 'The dawn of mass manufacturing (telephones) required new methods for controlling process variation.'},
         {'name': 'Assay Robustness (DOE)', 'year': 1926, 'inventor': 'R.A. Fisher', 'reason': 'To revolutionize agricultural science by efficiently testing multiple factors (fertilizers, varieties) at once.'},
         {'name': 'Confidence Intervals for Proportions', 'year': 1927, 'inventor': 'Edwin B. Wilson', 'reason': 'To solve the poor performance of the standard binomial confidence interval, especially for small samples.'},
@@ -552,7 +554,7 @@ def plot_chronological_timeline():
         fig.add_annotation(x=x_coord, y=y_coord, text=f"<b>{tool['name']}</b>", showarrow=False, yshift=25 if y_coord > 0 else -25, font=dict(size=11, color=tool_color), align="center")
 
     fig.update_layout(title_text='<b>A Chronological Timeline of V&V Analytics</b>', title_font_size=28, title_x=0.5,
-                      xaxis=dict(range=[1800, 2025], showgrid=True), yaxis=dict(visible=False, range=[-8, 8]),
+                      xaxis=dict(range=[1920, 2025], showgrid=True), yaxis=dict(visible=False, range=[-8, 8]),
                       plot_bgcolor='white', paper_bgcolor='white', height=700, margin=dict(l=20, r=20, t=100, b=20), showlegend=False)
     return fig
     
