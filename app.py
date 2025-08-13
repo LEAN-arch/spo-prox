@@ -469,12 +469,11 @@ def plot_act_grouped_timeline():
                                   yanchor="bottom", y=1.02, xanchor="center", x=0.5))
     return fig
 
-# FIX: Replace the entire plot_chronological_timeline function with this new, complete version.
 @st.cache_data
 def plot_chronological_timeline():
     """Generates the chronological timeline, now including all tools."""
     all_tools_data = [
-        # --- 'Linearity & Range' (year 1805) has been removed from this list ---
+        # --- This list is now filtered to only include tools from 1920 onwards ---
         {'name': 'Process Stability', 'year': 1924, 'inventor': 'Walter Shewhart', 'reason': 'The dawn of mass manufacturing (telephones) required new methods for controlling process variation.'},
         {'name': 'Assay Robustness (DOE)', 'year': 1926, 'inventor': 'R.A. Fisher', 'reason': 'To revolutionize agricultural science by efficiently testing multiple factors (fertilizers, varieties) at once.'},
         {'name': 'Confidence Intervals for Proportions', 'year': 1927, 'inventor': 'Edwin B. Wilson', 'reason': 'To solve the poor performance of the standard binomial confidence interval, especially for small samples.'},
@@ -531,19 +530,24 @@ def plot_chronological_timeline():
         tool['y'] = y_offsets[i % len(y_offsets)]
     
     fig = go.Figure()
+    
+    # --- THIS IS THE FIX: Adjusted the Eras to start from 1920 ---
     eras = {
-        'The Foundations (1800-1949)': {'color': 'rgba(0, 128, 128, 0.7)', 'boundary': (1800, 1949)},
+        'The Foundations (1920-1949)': {'color': 'rgba(0, 128, 128, 0.7)', 'boundary': (1920, 1949)},
         'Post-War & Industrial Boom (1950-1979)': {'color': 'rgba(0, 104, 201, 0.7)', 'boundary': (1950, 1979)},
         'The Quality Revolution (1980-1999)': {'color': 'rgba(100, 0, 100, 0.7)', 'boundary': (1980, 1999)},
         'The AI & Data Era (2000-Present)': {'color': 'rgba(214, 39, 40, 0.7)', 'boundary': (2000, 2025)}
     }
+    # --- END OF FIX ---
     
     for era_name, era_info in eras.items():
         x0, x1 = era_info['boundary']
         fig.add_shape(type="rect", x0=x0, y0=-5.5, x1=x1, y1=5.5, line=dict(width=0), fillcolor=era_info['color'], opacity=0.15, layer='below')
         fig.add_annotation(x=(x0 + x1) / 2, y=6.5, text=f"<b>{era_name}</b>", showarrow=False, font=dict(size=18, color=era_info['color']))
 
-    fig.add_shape(type="line", x0=1800, y0=0, x1=2025, y1=0, line=dict(color="black", width=3), layer='below')
+    # --- THIS IS THE FIX: Adjusted the main timeline bar ---
+    fig.add_shape(type="line", x0=1920, y0=0, x1=2025, y1=0, line=dict(color="black", width=3), layer='below')
+    # --- END OF FIX ---
 
     for tool in all_tools_data:
         x_coord, y_coord = tool['year'], tool['y']
@@ -553,9 +557,12 @@ def plot_chronological_timeline():
         fig.add_shape(type="line", x0=x_coord, y0=0, x1=x_coord, y1=y_coord, line=dict(color='grey', width=1))
         fig.add_annotation(x=x_coord, y=y_coord, text=f"<b>{tool['name']}</b>", showarrow=False, yshift=25 if y_coord > 0 else -25, font=dict(size=11, color=tool_color), align="center")
 
+    # --- THIS IS THE FIX: Adjusted the final x-axis range ---
     fig.update_layout(title_text='<b>A Chronological Timeline of V&V Analytics</b>', title_font_size=28, title_x=0.5,
                       xaxis=dict(range=[1920, 2025], showgrid=True), yaxis=dict(visible=False, range=[-8, 8]),
                       plot_bgcolor='white', paper_bgcolor='white', height=700, margin=dict(l=20, r=20, t=100, b=20), showlegend=False)
+    # --- END OF FIX ---
+    
     return fig
     
 @st.cache_data
