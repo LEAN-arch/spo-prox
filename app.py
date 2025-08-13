@@ -7560,7 +7560,7 @@ def render_eda_dashboard():
             | **Key Assumption**         | The relationship between variables is linear. The data should ideally be normally distributed. | The relationship is monotonic (as X increases, Y consistently increases or decreases, but not necessarily in a straight line). No assumption about data distribution. |
             | **Sensitivity to Outliers**| **Very sensitive.** A single outlier can dramatically skew the result.                          | **Highly robust.** Since it uses ranks, an outlier's exact value doesn't matter, only its position. |
             | **Pros**                   | ✅ More powerful and statistically precise if the assumptions are met.<br>✅ Directly related to the slope of a linear regression. | ✅ Captures non-linear but monotonic relationships.<br>✅ Robust to outliers.<br>✅ Can be used with ordinal data. |
-            | **Cons**                   | ❌ Can be misleading or completely miss strong non-linear relationships.<br>❌ Easily distorted by outliers. | ❌ Less powerful than Pearson if the relationship is truly linear.<br>❌ Loses information about the magnitude of the values. |
+            | **Cons**                   | ❌ Can be misleading or completely miss strong non-linear relationships. Easily distorted by outliers. | ❌ Less powerful than Pearson if the relationship is truly linear. Loses information about the magnitude of the values. |
 
             ---
 
