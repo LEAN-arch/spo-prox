@@ -368,7 +368,6 @@ def plot_act_grouped_timeline():
         {'name': 'Confidence Intervals for Proportions', 'act': 1, 'year': 1927, 'inventor': 'Edwin B. Wilson', 'desc': 'Wilson develops a superior confidence interval for pass/fail data.'},
         {'name': 'Core Validation Parameters', 'act': 1, 'year': 1980, 'inventor': 'ICH / FDA', 'desc': 'Accuracy, Precision, Specificity codified.'},
         {'name': 'LOD & LOQ', 'act': 1, 'year': 1968, 'inventor': 'Lloyd Currie (NIST)', 'desc': 'Currie at NIST formalizes the statistical basis.'},
-        {'name': 'Linearity & Range', 'act': 1, 'year': 1805, 'inventor': 'Legendre/Gauss', 'desc': 'Using linear regression to verify proportionality.'},
         {'name': 'Non-Linear Regression (4PL/5PL)', 'act': 1, 'year': 1975, 'inventor': 'Bioassay Field', 'desc': 'Models for sigmoidal curves common in immunoassays.'},
         {'name': 'Gage R&R / VCA', 'act': 1, 'year': 1982, 'inventor': 'AIAG', 'desc': 'AIAG codifies Measurement Systems Analysis (MSA).'},
         {'name': 'Attribute Agreement Analysis', 'act': 1, 'year': 1960, 'inventor': 'Cohen/Fleiss', 'desc': 'Validating human inspectors for pass/fail decisions.'},
